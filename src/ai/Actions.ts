@@ -141,7 +141,7 @@ function pickUpFoodAction(): GOAPAction {
       ctx.ant.forgetFood(ctx.ant.position);
 
       if (tile.foodAmount <= 0) {
-        tile.type = 'empty';
+        ctx.world.setTileType(ctx.ant.position, 'empty');
       }
 
       return 'success';

@@ -18,7 +18,7 @@ describe('simulation behavior loop', () => {
     if (!foodTile) {
       throw new Error('Expected test food tile to exist');
     }
-    foodTile.type = 'food';
+    simulation.world.setTileType(foodPoint, 'food');
     foodTile.foodAmount = 1;
     gatherer.x = foodPoint.x;
     gatherer.y = foodPoint.y;
@@ -56,5 +56,56 @@ describe('simulation behavior loop', () => {
 
     simulation.reset();
     expect(simulation.getStats().elapsedTime).toBe(0);
+  });
+
+  it('continues collecting known food after storage reaches the target', () => {
+    const simulation = new Simulation(() => 0.5);
+    const ant = simulation.ants[0];
+    simulation.ants = [ant];
+    simulation.colony.storedFood = simulation.colony.foodTarget;
+
+    ant.x = simulation.world.center.x;
+    ant.y = simulation.world.center.y;
+
+    const foodPoint = { x: simulation.world.center.x + 3, y: simulation.world.center.y };
+    const foodTile = simulation.world.getTile(foodPoint);
+    if (!foodTile) {
+      throw new Error('Expected test food tile to exist');
+    }
+    simulation.world.setTileType(foodPoint, 'food');
+    foodTile.foodAmount = 1;
+    ant.memory.knownFoodTiles = [foodPoint];
+
+    const initialStoredFood = simulation.colony.storedFood;
+
+    for (let step = 0; step < 80; step += 1) {
+      simulation.update(0.1);
+    }
+
+    expect(simulation.colony.storedFood).toBeGreaterThan(initialStoredFood);
+    expect(ant.carrying).toBeNull();
+  });
+
+  it('dumps carried dirt even when the hive no longer needs expansion', () => {
+    const simulation = new Simulation(() => 0.5);
+    const ant = simulation.ants[0];
+    simulation.ants = [ant];
+    simulation.colony.storedFood = 0;
+
+    ant.x = simulation.world.center.x + 3;
+    ant.y = simulation.world.center.y;
+    ant.carrying = 'dirt';
+
+    let droppedAtHive = false;
+    for (let step = 0; step < 80; step += 1) {
+      simulation.update(0.1);
+      if (ant.carrying === null) {
+        droppedAtHive = simulation.world.getTile(ant.position)?.type === 'hive';
+        break;
+      }
+    }
+
+    expect(ant.carrying).toBeNull();
+    expect(droppedAtHive).toBe(true);
   });
 });

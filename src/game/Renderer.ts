@@ -1,5 +1,5 @@
 import type { Simulation } from './Simulation';
-import { TILE_SIZE, type Tile } from './World';
+import { TILE_SIZE, type Tile, type World } from './World';
 
 const TILE_COLORS: Record<Tile['type'], string> = {
   empty: '#090b0a',
@@ -11,6 +11,10 @@ const TILE_COLORS: Record<Tile['type'], string> = {
 
 export class Renderer {
   private readonly ctx: CanvasRenderingContext2D;
+  private readonly terrainCanvas: HTMLCanvasElement;
+  private readonly terrainCtx: CanvasRenderingContext2D;
+  private cachedWorld: World | null = null;
+  private cachedTerrainRevision = -1;
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     const ctx = canvas.getContext('2d');
@@ -18,22 +22,33 @@ export class Renderer {
       throw new Error('Canvas 2D context is unavailable.');
     }
     this.ctx = ctx;
+
+    this.terrainCanvas = document.createElement('canvas');
+    this.terrainCanvas.width = canvas.width;
+    this.terrainCanvas.height = canvas.height;
+
+    const terrainCtx = this.terrainCanvas.getContext('2d');
+    if (!terrainCtx) {
+      throw new Error('Canvas 2D context is unavailable.');
+    }
+    this.terrainCtx = terrainCtx;
   }
 
   render(simulation: Simulation, showDebug: boolean): void {
     const { ctx } = this;
-    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    for (const tile of simulation.world.tiles) {
-      ctx.fillStyle = TILE_COLORS[tile.type];
+    this.ensureTerrainCache(simulation.world);
+    ctx.drawImage(this.terrainCanvas, 0, 0);
+
+    for (const tile of simulation.world.getFoodTiles()) {
+      ctx.fillStyle = TILE_COLORS.food;
       ctx.fillRect(tile.x * TILE_SIZE, tile.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+      ctx.fillStyle = '#9bf06a';
+      ctx.fillRect(tile.x * TILE_SIZE + 2, tile.y * TILE_SIZE + 2, 2, 2);
+    }
 
-      if (tile.type === 'food' && tile.foodAmount > 0) {
-        ctx.fillStyle = '#9bf06a';
-        ctx.fillRect(tile.x * TILE_SIZE + 2, tile.y * TILE_SIZE + 2, 2, 2);
-      }
-
-      if (showDebug) {
+    if (showDebug) {
+      for (const tile of simulation.world.tiles) {
         this.renderPheromone(tile);
         if (tile.reservedByAntId) {
           ctx.strokeStyle = '#f2d15a';
@@ -74,6 +89,34 @@ export class Renderer {
     }
   }
 
+  private ensureTerrainCache(world: World): void {
+    const resized =
+      this.terrainCanvas.width !== this.canvas.width ||
+      this.terrainCanvas.height !== this.canvas.height;
+    if (
+      !resized &&
+      this.cachedWorld === world &&
+      this.cachedTerrainRevision === world.terrainRevision
+    ) {
+      return;
+    }
+
+    if (resized) {
+      this.terrainCanvas.width = this.canvas.width;
+      this.terrainCanvas.height = this.canvas.height;
+    }
+
+    this.terrainCtx.clearRect(0, 0, this.terrainCanvas.width, this.terrainCanvas.height);
+
+    for (const tile of world.tiles) {
+      this.terrainCtx.fillStyle = tile.type === 'food' ? TILE_COLORS.empty : TILE_COLORS[tile.type];
+      this.terrainCtx.fillRect(tile.x * TILE_SIZE, tile.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+    }
+
+    this.cachedWorld = world;
+    this.cachedTerrainRevision = world.terrainRevision;
+  }
+
   private renderPheromone(tile: Tile): void {
     const foodStrength = Math.min(0.28, tile.pheromoneFood * 0.24);
     const homeStrength = Math.min(0.2, tile.pheromoneHome * 0.18);
@@ -101,7 +144,8 @@ export class Renderer {
       this.ctx.lineWidth = 1;
       this.ctx.beginPath();
       this.ctx.moveTo(path[0].x * TILE_SIZE + TILE_SIZE / 2, path[0].y * TILE_SIZE + TILE_SIZE / 2);
-      for (const point of path.slice(1)) {
+      for (let index = 1; index < path.length; index += 1) {
+        const point = path[index];
         this.ctx.lineTo(point.x * TILE_SIZE + TILE_SIZE / 2, point.y * TILE_SIZE + TILE_SIZE / 2);
       }
       this.ctx.stroke();
