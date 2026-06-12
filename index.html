@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ant GOAP Simulation</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="simulation-stage" aria-label="Ant colony simulation">
+        <canvas id="world-canvas" width="960" height="600"></canvas>
+      </section>
+
+      <aside class="debug-panel" aria-label="Simulation controls and inspector">
+        <header class="panel-header">
+          <p class="eyebrow">Ant GOAP Simulation</p>
+          <h1>Colony monitor</h1>
+        </header>
+
+        <div class="control-row">
+          <button id="pause-button" data-testid="pause-button" type="button">Pause</button>
+          <button id="reset-button" data-testid="reset-button" type="button">Reset</button>
+        </div>
+
+        <label class="field">
+          <span>Speed</span>
+          <select id="speed-select" data-testid="speed-select">
+            <option value="1">1x</option>
+            <option value="2">2x</option>
+            <option value="5">5x</option>
+          </select>
+        </label>
+
+        <div class="control-row">
+          <button id="spawn-ant-button" data-testid="spawn-ant-button" type="button">
+            Spawn ant
+          </button>
+          <button id="spawn-food-button" data-testid="spawn-food-button" type="button">
+            Spawn food
+          </button>
+        </div>
+
+        <label class="toggle">
+          <input id="debug-toggle" data-testid="debug-toggle" type="checkbox" checked />
+          <span>Debug overlay</span>
+        </label>
+
+        <section class="stat-grid" aria-label="Colony stats">
+          <div>
+            <span>Ants</span>
+            <strong id="ant-count" data-testid="ant-count">0</strong>
+          </div>
+          <div>
+            <span>Food</span>
+            <strong id="stored-food" data-testid="stored-food">0</strong>
+          </div>
+          <div>
+            <span>Hive tiles</span>
+            <strong id="hive-size" data-testid="hive-size">0</strong>
+          </div>
+          <div>
+            <span>Known food</span>
+            <strong id="known-food" data-testid="known-food">0</strong>
+          </div>
+        </section>
+
+        <section class="inspector" aria-label="Selected ant inspector">
+          <h2>Selected ant</h2>
+          <dl>
+            <div>
+              <dt>ID</dt>
+              <dd id="selected-ant-id" data-testid="selected-ant-id">none</dd>
+            </div>
+            <div>
+              <dt>Goal</dt>
+              <dd id="selected-ant-goal" data-testid="selected-ant-goal">none</dd>
+            </div>
+            <div>
+              <dt>Action</dt>
+              <dd id="selected-ant-action" data-testid="selected-ant-action">none</dd>
+            </div>
+            <div>
+              <dt>Carrying</dt>
+              <dd id="selected-ant-carrying" data-testid="selected-ant-carrying">none</dd>
+            </div>
+            <div>
+              <dt>Energy</dt>
+              <dd id="selected-ant-energy" data-testid="selected-ant-energy">0</dd>
+            </div>
+            <div>
+              <dt>Plan</dt>
+              <dd id="selected-ant-plan" data-testid="selected-ant-plan">none</dd>
+            </div>
+          </dl>
+        </section>
+      </aside>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
