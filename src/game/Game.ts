@@ -13,6 +13,7 @@ interface UiRefs {
   storedFood: HTMLElement;
   hiveSize: HTMLElement;
   knownFood: HTMLElement;
+  runtime: HTMLElement;
   selectedAntId: HTMLElement;
   selectedAntGoal: HTMLElement;
   selectedAntAction: HTMLElement;
@@ -107,6 +108,7 @@ export class Game {
     this.ui.storedFood.textContent = String(stats.storedFood);
     this.ui.hiveSize.textContent = String(stats.hiveSize);
     this.ui.knownFood.textContent = String(stats.knownFoodSources);
+    this.ui.runtime.textContent = formatRuntime(stats.elapsedTime);
 
     this.ui.selectedAntId.textContent = selected?.id ?? 'none';
     this.ui.selectedAntGoal.textContent = selected?.currentGoal?.name ?? 'none';
@@ -133,6 +135,7 @@ function readUiRefs(): UiRefs {
     storedFood: requiredElement('stored-food', HTMLElement),
     hiveSize: requiredElement('hive-size', HTMLElement),
     knownFood: requiredElement('known-food', HTMLElement),
+    runtime: requiredElement('runtime', HTMLElement),
     selectedAntId: requiredElement('selected-ant-id', HTMLElement),
     selectedAntGoal: requiredElement('selected-ant-goal', HTMLElement),
     selectedAntAction: requiredElement('selected-ant-action', HTMLElement),
@@ -152,4 +155,22 @@ function requiredElement<T extends typeof HTMLElement>(
   }
 
   return element as InstanceType<T>;
+}
+
+function formatRuntime(elapsedTime: number): string {
+  const totalSeconds = Math.max(0, Math.floor(elapsedTime));
+  const seconds = totalSeconds % 60;
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const minutes = totalMinutes % 60;
+  const hours = Math.floor(totalMinutes / 60);
+
+  if (hours > 0) {
+    return `${hours}:${padTime(minutes)}:${padTime(seconds)}`;
+  }
+
+  return `${padTime(minutes)}:${padTime(seconds)}`;
+}
+
+function padTime(value: number): string {
+  return String(value).padStart(2, '0');
 }

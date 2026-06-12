@@ -13,6 +13,22 @@ describe('simulation behavior loop', () => {
     expect(simulation.colony.storedFood).toBeGreaterThan(0);
     expect(simulation.colony.getHiveSize(simulation.world)).toBeGreaterThan(initialHiveSize);
   });
+
+  it('tracks active simulated runtime', () => {
+    const simulation = new Simulation(() => 0.5);
+
+    expect(simulation.getStats().elapsedTime).toBe(0);
+
+    simulation.update(1.25);
+    expect(simulation.getStats().elapsedTime).toBeCloseTo(1.25);
+
+    simulation.paused = true;
+    simulation.update(2.5);
+    expect(simulation.getStats().elapsedTime).toBeCloseTo(1.25);
+
+    simulation.reset();
+    expect(simulation.getStats().elapsedTime).toBe(0);
+  });
 });
 
 function seededRandom(seed: number): () => number {
