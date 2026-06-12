@@ -6,6 +6,8 @@ test('loads the simulator and supports primary controls', async ({ page }) => {
   const canvas = page.locator('#world-canvas');
   await expect(canvas).toBeVisible();
   await expect(page.getByTestId('ant-count')).toHaveText('20');
+  await expect(page.getByTestId('runtime')).toBeVisible();
+  await expect(page.getByTestId('runtime')).toHaveText('00:00');
   await expect(page.getByTestId('selected-ant-id')).toContainText('ant-');
 
   await expect

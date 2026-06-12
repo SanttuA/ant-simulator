@@ -9,6 +9,7 @@ export interface SimulationStats {
   storedFood: number;
   hiveSize: number;
   knownFoodSources: number;
+  elapsedTime: number;
   speed: number;
   paused: boolean;
 }
@@ -19,6 +20,7 @@ export class Simulation {
   ants: Ant[] = [];
   paused = false;
   speed = 1;
+  elapsedTime = 0;
   selectedAntId: string | null = null;
 
   private antSequence = 0;
@@ -34,6 +36,7 @@ export class Simulation {
     this.colony = new Colony();
     this.ants = [];
     this.antSequence = 0;
+    this.elapsedTime = 0;
 
     for (let i = 0; i < 20; i += 1) {
       this.spawnAnt();
@@ -47,6 +50,7 @@ export class Simulation {
       return;
     }
 
+    this.elapsedTime += dt;
     updatePheromones(this.world, this.ants);
 
     for (const ant of this.ants) {
@@ -114,6 +118,7 @@ export class Simulation {
       storedFood: this.colony.storedFood,
       hiveSize: this.colony.getHiveSize(this.world),
       knownFoodSources: knownFood.size,
+      elapsedTime: this.elapsedTime,
       speed: this.speed,
       paused: this.paused,
     };
