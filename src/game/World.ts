@@ -23,6 +23,8 @@ export interface Tile extends Point {
 
 export class World {
   readonly tiles: Tile[];
+  private readonly foodTileKeys = new Set<string>();
+  private terrainRevisionValue = 0;
 
   constructor(
     readonly width = WORLD_WIDTH,
@@ -55,7 +57,13 @@ export class World {
     return { x: Math.floor(this.width / 2), y: Math.floor(this.height / 2) };
   }
 
+  get terrainRevision(): number {
+    return this.terrainRevisionValue;
+  }
+
   generateDefaultMap(): void {
+    this.foodTileKeys.clear();
+
     this.tiles.forEach((tile) => {
       tile.type = 'empty';
       tile.foodAmount = 0;
@@ -74,6 +82,7 @@ export class World {
 
     this.addDiggableSoil(center);
     this.addWallOutcrops();
+    this.terrainRevisionValue += 1;
 
     for (let i = 0; i < 4; i += 1) {
       this.spawnFoodPatch(
@@ -108,9 +117,24 @@ export class World {
       return;
     }
 
+    const previousTerrainType = terrainTypeForRender(tile.type);
+    const nextTerrainType = terrainTypeForRender(type);
+
+    if (tile.type === 'food') {
+      this.foodTileKeys.delete(pointKey(tile));
+    }
+
     tile.type = type;
+    if (type === 'food') {
+      this.foodTileKeys.add(pointKey(tile));
+    }
+
     if (type !== 'food') {
       tile.foodAmount = 0;
+    }
+
+    if (previousTerrainType !== nextTerrainType) {
+      this.terrainRevisionValue += 1;
     }
   }
 
@@ -130,7 +154,19 @@ export class World {
   }
 
   getFoodTiles(): Tile[] {
-    return this.tiles.filter((tile) => tile.type === 'food' && tile.foodAmount > 0);
+    const foodTiles: Tile[] = [];
+
+    for (const key of this.foodTileKeys) {
+      const tile = this.getTile(parsePointKey(key));
+      if (tile?.type === 'food' && tile.foodAmount > 0) {
+        foodTiles.push(tile);
+        continue;
+      }
+
+      this.foodTileKeys.delete(key);
+    }
+
+    return foodTiles;
   }
 
   countTiles(type: TileType): number {
@@ -201,7 +237,7 @@ export class World {
         continue;
       }
 
-      tile.type = 'food';
+      this.setTileType({ x, y }, 'food');
       tile.foodAmount += 2 + Math.floor(this.random() * 4);
     }
   }
@@ -295,4 +331,13 @@ export class World {
       y: origin.y,
     };
   }
+}
+
+function terrainTypeForRender(type: TileType): TileType {
+  return type === 'food' ? 'empty' : type;
+}
+
+function parsePointKey(key: string): Point {
+  const [x = '0', y = '0'] = key.split(',');
+  return { x: Number(x), y: Number(y) };
 }

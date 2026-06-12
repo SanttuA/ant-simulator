@@ -8,6 +8,11 @@ export function createGoals(): Goal[] {
       getPriority: (_ctx, state) => (state.energyLow ? 1000 : 0),
     },
     {
+      name: 'DumpDirtGoal',
+      desiredState: { hasDirt: false },
+      getPriority: (_ctx, state) => (state.hasDirt ? 220 : 0),
+    },
+    {
       name: 'ExpandHiveGoal',
       desiredState: { hiveNeedsExpansion: false, hasDirt: false },
       getPriority: (ctx, state) => {
@@ -18,6 +23,17 @@ export function createGoals(): Goal[] {
         const crowding =
           ctx.simulation.ants.length / Math.max(1, ctx.colony.getHiveSize(ctx.world));
         return 72 + crowding * 30;
+      },
+    },
+    {
+      name: 'CollectKnownFoodGoal',
+      desiredState: { hasFood: true },
+      getPriority: (_ctx, state) => {
+        if (state.hasFood || state.hasDirt || !state.foodKnown) {
+          return 0;
+        }
+
+        return 34;
       },
     },
     {
@@ -44,7 +60,7 @@ export function createGoals(): Goal[] {
           return 0;
         }
 
-        return state.foodKnown ? 8 : 58;
+        return state.foodKnown ? 0 : 58;
       },
     },
   ];

@@ -14,8 +14,7 @@ export function digExpansionTile(
     return false;
   }
 
-  tile.type = 'hive';
-  tile.foodAmount = 0;
+  world.setTileType(target, 'hive');
   tile.reservedByAntId = undefined;
   colony.releaseExpansionTarget(world, antId, target);
   return true;

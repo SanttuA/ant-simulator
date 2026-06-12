@@ -27,9 +27,11 @@ export class Game {
   private readonly renderer: Renderer;
   private readonly ui: UiRefs;
   private lastTimestamp = 0;
+  private lastUiUpdateTimestamp = 0;
   private accumulator = 0;
   private animationFrame = 0;
   private readonly fixedStep = 1 / 30;
+  private readonly uiUpdateInterval = 200;
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     this.renderer = new Renderer(canvas);
@@ -57,7 +59,13 @@ export class Game {
     }
 
     this.renderer.render(this.simulation, this.ui.debugToggle.checked);
-    this.updateUi();
+    if (
+      this.lastUiUpdateTimestamp === 0 ||
+      timestamp - this.lastUiUpdateTimestamp >= this.uiUpdateInterval
+    ) {
+      this.updateUi();
+      this.lastUiUpdateTimestamp = timestamp;
+    }
     this.animationFrame = requestAnimationFrame((nextTimestamp) => this.loop(nextTimestamp));
   }
 

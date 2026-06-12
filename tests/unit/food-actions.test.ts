@@ -19,14 +19,14 @@ describe('food actions', () => {
 
     const tile = simulation.world.getTile(ant.position);
     expect(tile).toBeDefined();
-    tile!.type = 'food';
+    simulation.world.setTileType(ant.position, 'food');
     tile!.foodAmount = 2;
 
     expect(pickUpFood?.execute(ctx, 1)).toBe('success');
     expect(ant.carrying).toBe('food');
     expect(tile!.foodAmount).toBe(1);
 
-    tile!.type = 'hive';
+    simulation.world.setTileType(ant.position, 'hive');
     expect(depositFood?.execute(ctx, 1)).toBe('success');
     expect(ant.carrying).toBeNull();
     expect(simulation.colony.storedFood).toBe(1);
